@@ -1,0 +1,18 @@
+#!/bin/bash -xe
+
+yum install -y git gcc python-devel openssl
+
+#git clone http://github.com/openstack/trove.git
+git clone http://git.trystack.cn/openstack/trove
+
+pushd trove
+git checkout origin/stable/ocata
+popd
+
+pip install -c https://git.openstack.org/cgit/openstack/requirements/plain/upper-constraints.txt?h=stable/ocata \
+    ./trove \
+    pymongo \
+
+mkdir -p /etc/trove
+
+# /usr/bin/trove-guestagent

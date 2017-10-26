@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# requires diskimage-builder==1.24.0
+
+DIB_VERSION=$(pip show diskimage-builder | awk '/^Version/{print $2}')
+
+if [[ x$DIB_VERSION != "x1.24.0" ]]; then
+cat <<EOF
+diskimage-builder==1.24.0 is required, please install through
+
+    pip install diskimage-builder==1.24.0
+
+EOF
+    exit 1
+fi
+
+export DIB_IMAGE_SIZE=2
+
+export ELEMENTS_PATH=elements
+
+#export DIB_CLOUD_IMAGES=http://images.trystack.cn/centos
+#export BASE_IMAGE_FILE=CentOS-7-x86_64-GenericCloud.qcow2.xz
+export DIB_DISTRIBUTION_MIRROR=http://mirrors.aliyun.com/centos
+export DIB_CLOUD_INIT_DATASOURCES="ConfigDrive, OpenStack, Ec2"
+export DIB_EPEL_MIRROR=http://mirrors.aliyun.com/epel
+
+export DIB_CLOUD_INIT_ALLOW_SSH_PWAUTH=1
+export DIB_CLOUD_INIT_ENABLE_ROOT=1
+
+# NOTE: hit this issue
+# https://bugs.launchpad.net/diskimage-builder/+bug/1477179
+# wait upstream to fix this.
+# --mkfs-options "-O ^64bit" fix this issue
+
+disk-image-create --mkfs-options "-O ^64bit" -a amd64 -o centos6-amd64 "$@" \
+    centos disable-selinux epel \
+    cloud-init cloud-init-datasources dynamic-login element-manifest \
+    dhcp-all-interfaces \
+    vm \
+    qemu-guest-agent \
+    centos6-fix-growpart \
+    99vnc-security 99cloud-init ssh-dns \
+    99cloud-common \
+    auto-fstrim

@@ -1,0 +1,8 @@
+#!/bin/bash
+
+if [[ ${DISTRO_NAME} =~ "centos" ]]; then
+    yum install -y wget
+    yum remove mariadb-config
+elif [[ ${DISTRO_NAME} =~ "ubuntu" ]]; then
+    apt-get install -y wget
+fi

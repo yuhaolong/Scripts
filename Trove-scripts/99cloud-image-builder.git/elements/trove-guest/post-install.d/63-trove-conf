@@ -1,0 +1,54 @@
+#!/bin/sh
+
+# CONTEXT: GUEST during CONSTRUCTION as ROOT
+# PURPOSE: Install controller base required packages
+
+set -e
+set -o xtrace
+
+DIB_TROVE_AUTH_URL=${DIB_TROVE_AUTH_URL:-http://172.24.8.18:35357/v2.0}
+DIB_TROVE_BACKUP_SWIFT_CONTAINER=${DIB_TROVE_BACKUP_SWIFT_CONTAINER:-database_backups}
+
+mkdir -p /etc/trove
+mkdir -p /var/log/trove
+
+# NOTE(jeffrey4l): trove use /var/lib/mysql/data as default datadir
+sed -i 's,datadir.*,datadir=/var/lib/mysql/data,' /etc/my.cnf
+
+# NOTE(jeffrey4l): fix postgresql PgDump issue.
+sed -i "s,cmd = 'sudo -u postgres pg_dumpall ',cmd = 'sudo -u postgres pg_dumpall -U os_admin '," \
+    /usr/lib/python2.7/site-packages/trove/guestagent/strategies/backup/experimental/postgresql_impl.py
+
+rm /usr/lib/python2.7/site-packages/trove/guestagent/strategies/backup/experimental/postgresql_impl.pyc
+
+
+cat > /etc/trove/trove-guestagent.conf << EOF
+[DEFAULT]
+verbose = True
+debug = True
+log_dir = /var/log/trove
+log_file = guestagent.log
+
+datastore_manager=${DATASTORE}
+
+transport_url=$DIB_TROVE_TRANSPORT_URL
+control_exchange = trove
+
+storage_strategy = SwiftStorage
+storage_namespace = trove.common.strategies.storage.swift
+
+backup_swift_container = ${DIB_TROVE_BACKUP_SWIFT_CONTAINER:-database_backups}
+backup_use_gzip_compression = True
+backup_use_openssl_encryption = True
+backup_aes_cbc_key = "default_aes_cbc_key"
+backup_use_snet = False
+backup_chunk_size = 65536
+backup_segment_max_size = 2147483648
+
+[mysql]
+backup_strategy = InnoBackupEx
+replication_strategy = MysqlGTIDReplication
+
+[postgresql]
+backup_strategy = PgDump
+EOF

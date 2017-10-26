@@ -1,0 +1,17 @@
+#!/bin/bash
+
+if [ ${DIB_DEBUG_TRACE:-0} -gt 0 ]; then
+    set -x
+fi
+
+set -eu
+set -o pipefail
+
+TMOUT=${DIB_TMOUT:-3600}
+
+# Add TMOUT into /etc/profile file
+cat <<EOF >> /etc/profile
+TMOUT=$TMOUT
+readonly TMOUT
+export TMOUT
+EOF

@@ -1,0 +1,20 @@
+#!/bin/bash
+export DIB_IMAGE_SIZE=2
+
+export ELEMENTS_PATH=elements
+
+export DIB_DISTRIBUTION_MIRROR=http://mirrors.aliyun.com/ubuntu
+export DIB_RELEASE=trusty
+export DIB_CLOUD_INIT_DATASOURCES="ConfigDrive, OpenStack, Ec2"
+
+export DIB_CLOUD_INIT_ALLOW_SSH_PWAUTH=1
+export DIB_CLOUD_INIT_ENABLE_ROOT=1
+
+disk-image-create -a amd64 -o ubuntu-trusty-amd64 ubuntu "$@" \
+    cloud-init cloud-init-datasources dynamic-login element-manifest \
+    dhcp-all-interfaces \
+    vm \
+    qemu-guest-agent \
+    disable-update-hostname \
+    99vnc-security 99cloud-init ssh-dns \
+    auto-fstrim

@@ -1,0 +1,18 @@
+#!/bin/bash
+
+export DIB_DISTRIBUTION_MIRROR=http://mirrors.aliyun.com/centos
+export DIB_CLOUD_INIT_DATASOURCES="ConfigDrive, OpenStack, Ec2"
+export DIB_EPEL_MIRROR=http://mirrors.aliyun.com/epel
+
+export DIB_CLOUD_INIT_ALLOW_SSH_PWAUTH=1
+
+## Dev User
+export DIB_DEV_USER_USERNAME=99cloud
+export DIB_DEV_USER_PWDLESS_SUDO=yes
+export DIB_DEV_USER_PASSWORD=99cloud
+
+disk-image-create -a amd64 -o ipa "$@" \
+    centos7 disable-selinux epel \
+    ironic-agent \
+    dynamic-login element-manifest \
+    devuser

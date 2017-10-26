@@ -1,0 +1,45 @@
+#!/bin/bash
+if [ ${DIB_DEBUG_TRACE:-0} -gt 0 ]; then
+    set -x
+fi
+
+set -eu
+set -o pipefail
+
+CUR_DIR=$(dirname $0)
+
+install -D -g root -o root -m 0755 ${CUR_DIR}/auto-fstrim.sh /usr/local/bin/auto-fstrim.sh
+
+if [[ -x $(command -v journalctl) ]]; then
+    cat <<EOF > /etc/systemd/system/auto-fstrim.timer
+[Unit]
+Description=fstrim automatically timer
+
+[Timer]
+OnCalendar=00:00
+RandomizedDelaySec=6hour
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+    cat <<EOF > /etc/systemd/system/auto-fstrim.service
+[Unit]
+Description=fstrim automatically service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/auto-fstrim.sh
+EOF
+
+systemctl daemon-reload
+systemctl enable auto-fstrim.timer
+
+
+elif [[ -f /usr/bin/crontab ]]; then
+    cat <<EOF > /etc/cron.daily/auto-fstrim
+#!/bin/bash
+/usr/local/bin/auto-fstrim.sh >> /var/log/auto-fstrim.log 2>&1
+EOF
+    chmod +x /etc/cron.daily/auto-fstrim
+fi

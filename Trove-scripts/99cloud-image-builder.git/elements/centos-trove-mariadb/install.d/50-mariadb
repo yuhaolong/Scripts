@@ -1,0 +1,12 @@
+#!/bin/bash
+
+yum -y install http://www.percona.com/downloads/percona-release/redhat/0.1-4/percona-release-0.1-4.noarch.rpm
+yum -y install mariadb-server percona-xtrabackup
+
+sudo mkdir -p /etc/mysql/conf.d/
+sudo chown mysql:mysql -R /etc/mysql
+
+cat <<EOF > /etc/tmpfiles.d/mariadb.conf
+d /var/run/mariadb 0755 mysql mysql -
+d /var/run/mysqld 0755 mysql mysql -
+EOF

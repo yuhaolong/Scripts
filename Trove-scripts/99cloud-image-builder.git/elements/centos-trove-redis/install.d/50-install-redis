@@ -1,0 +1,5 @@
+#!/bin/bash
+
+yum -y install epel-release
+yum -y install redis
+pip install -c https://git.openstack.org/cgit/openstack/requirements/plain/upper-constraints.txt?h=stable/ocata redis

@@ -1,0 +1,11 @@
+#!/bin/bash -xe
+
+# disable protected-mode
+
+cat <<EOF > /etc/systemd/system/redis.service.d/override.conf
+[Service]
+ExecStart=
+ExecStart=/usr/bin/redis-server /etc/redis.conf --daemonize no --protected-mode no
+EOF
+
+systemctl enable redis.service

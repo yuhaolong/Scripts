@@ -1,0 +1,4 @@
+#!/bin/bash -xe
+
+yum install -y python-setuptools
+easy_install pip

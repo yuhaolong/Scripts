@@ -1,0 +1,18 @@
+#!/bin/bash -xe
+
+POSTGRESQL_SERVICE=/usr/lib/systemd/system/postgresql.service
+
+# init db
+su - postgres -c '/usr/pgsql-9.4/bin/initdb /var/lib/pgsql/9.4/data'
+
+# rename data folder
+mv /var/lib/pgsql /var/lib/postgresql
+
+mv /usr/lib/systemd/system/postgresql-9.4.service $POSTGRESQL_SERVICE
+
+
+sed -i 's,PGDATA=/var/lib/pgsql/9.4/data/,PGDATA=/var/lib/postgresql/9.4/data/,' $POSTGRESQL_SERVICE
+
+mv /usr/lib/tmpfiles.d/postgresql-9.4.conf /usr/lib/tmpfiles.d/postgresql.conf
+
+systemctl enable postgresql.service

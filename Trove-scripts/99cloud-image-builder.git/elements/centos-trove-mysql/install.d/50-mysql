@@ -1,0 +1,9 @@
+#!/bin/bash
+
+
+yum -y install  http://dev.mysql.com/get/mysql-community-release-el7-5.noarch.rpm
+yum -y install http://www.percona.com/downloads/percona-release/redhat/0.1-4/percona-release-0.1-4.noarch.rpm
+yum -y install mysql-community-server percona-xtrabackup
+
+sudo mkdir -p /etc/mysql/conf.d/
+sudo chown mysql:mysql -R /etc/mysql

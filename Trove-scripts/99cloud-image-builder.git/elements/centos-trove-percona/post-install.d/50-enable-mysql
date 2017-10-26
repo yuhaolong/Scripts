@@ -1,0 +1,3 @@
+#!/bin/bash -xe
+
+systemctl enable mysqld.service

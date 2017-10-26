@@ -1,0 +1,54 @@
+#!/bin/bash -xe 
+
+cat > "/etc/rc.local" << _EOF_
+# Make sure to disable Linux kernel feature transparent huge pages,
+# it will affect greatly both memory usage and latency in a negative way.
+# See: http://docs.mongodb.org/manual/tutorial/transparent-huge-pages/
+if test -f /sys/kernel/mm/redhat_transparent_hugepage/defrag; then
+  echo never > /sys/kernel/mm/redhat_transparent_hugepage/defrag
+fi
+if test -f /sys/kernel/mm/redhat_transparent_hugepage/enabled; then
+  echo never > /sys/kernel/mm/redhat_transparent_hugepage/enabled
+fi
+
+exit \$?
+
+_EOF_
+
+rm -rf /etc/init.d/mongod
+
+cat > /lib/systemd/system/mongod.service << EOF
+[Unit]
+Description=High-performance, schema-free document-oriented database
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/mongod -f /etc/mongod.conf
+LimitNOFILE=64000
+TimeoutStartSec=180
+User=mongod
+Group=mongod
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+cat > /etc/mongod.conf <<EOF
+systemLog:
+  destination: file
+  logAppend: true
+  path: /var/log/mongodb/mongod.log
+
+storage:
+  dbPath: /var/lib/mongo
+  journal:
+    enabled: true
+net:
+  port: 27017
+  bindIp: 127.0.0.1  # Listen to local interface only, comment to listen on all interfaces.
+EOF
+
+echo "d /run/mongodb 0755 mongod mongod - -" > /usr/lib/tmpfiles.d/mongod.conf
+
+systemctl enable mongod.service

@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# NOTE:
+# support matrix
+#   database  | single instance | replica | backup  | version | manage root
+#     mysql   |      yes        |   no    |   yes   |  5.6    |    yes 
+#    mariadb  |      yes        |   no    |   yes   |  5.5.52 |    yes
+#    percona  |      yes        |   yes   |   yes   |  5.6    |    yes
+#   postgresql|      yes        |   no    |   yes   |  9.4    |    yes
+#   redis     |      yes        |   yes   |   yes   |  3.2.3  |     -
+#   mongodb   |      yes        |   -     |   yes   |  3.2.16 |    yes
+#
+#  yes: works
+#  no: do not works
+#  -: do not support
+
+export DATASTORE="${DATASTORE:-percona}"
+
+export DIB_TROVE_TRANSPORT_URL=${TRANSPORT_URL:-rabbit://openstack:fSFjsfnNztHrtA2zasfMXjukcPYhZMRyGWEpqGwv@172.18.22.101:5672,openstack:fSFjsfnNztHrtA2zasfMXjukcPYhZMRyGWEpqGwv@172.18.22.102:5672,openstack:fSFjsfnNztHrtA2zasfMXjukcPYhZMRyGWEpqGwv@172.18.22.103:5672}
+
+export DIB_CLOUD_INIT_DATASOURCES="ConfigDrive, OpenStack, Ec2"
+export ELEMENTS_PATH=elements
+
+## Dev User
+export DIB_DEV_USER_USERNAME=99cloud
+export DIB_DEV_USER_PWDLESS_SUDO=yes
+export DIB_DEV_USER_PASSWORD=99cloud
+
+disk-image-create -a amd64 -t raw "$@" \
+    centos7 \
+    dhcp-all-interfaces \
+    disable-selinux vm devuser \
+    element-manifest \
+    disable-update-hostname \
+    99cloud-init \
+    ssh-dns \
+    "centos-trove-${DATASTORE}" \
+    trove-guest \
+    -o "centos-${DATASTORE}.raw"
